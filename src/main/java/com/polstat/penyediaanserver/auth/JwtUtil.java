@@ -8,11 +8,15 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import java.io.Serializable;
-import java.util.Date;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 @Component
 public class JwtUtil implements Serializable {
@@ -23,10 +27,19 @@ public class JwtUtil implements Serializable {
 
     public String generateAccessToken(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return Jwts.builder().setSubject(userDetails.getUsername()).setIssuer("Polstat")
+        String role = userDetails.getAuthorities().stream()
+                .findFirst() // Asumsikan hanya satu peran untuk setiap pengguna
+                .orElseThrow(() -> new RuntimeException("Peran tidak ditemukan"))
+                .getAuthority().replace("ROLE_", ""); // Hilangkan prefix "ROLE_"
+
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .claim("role", role) // Menambahkan peran ke klaim
+                .setIssuer("Polstat")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRE_DURATION))
-                .signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
+                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
+                .compact();
     }
 
     public boolean validateAccessToken(String token) {
@@ -53,5 +66,18 @@ public class JwtUtil implements Serializable {
 
     private Claims parseClaims(String token) {
         return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+    }
+
+    public String getRoleFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return claims.get("role", String.class); // Mengambil peran dari klaim
+    }
+
+    public List<GrantedAuthority> getAuthoritiesFromToken(String token) {
+        String role = getRoleFromToken(token);
+        if (role != null) {
+            return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
+        }
+        return Collections.emptyList();
     }
 }
