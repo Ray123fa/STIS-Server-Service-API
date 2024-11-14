@@ -1,10 +1,13 @@
 package com.polstat.penyediaanserver.controller;
 
 import com.polstat.penyediaanserver.dto.UserDto;
+import com.polstat.penyediaanserver.enums.Role;
 import com.polstat.penyediaanserver.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -42,7 +45,7 @@ public class UserController {
     }
 
     @PutMapping("/profile")
-    public ResponseEntity<Map<String, Object>> updateProfile(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UserDto userDto) {
+    public ResponseEntity<Map<String, Object>> updateProfile(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody UserDto userDto) {
         if (userDetails == null || userDetails.getUsername() == null) {
             Map<String, Object> response = new HashMap<>();
             response.put("status", "error");
@@ -135,6 +138,7 @@ public class UserController {
         }
     }
 
+    @PreAuthorize("hasRole('MAHASISWA')")
     @DeleteMapping("/delete-account")
     public ResponseEntity<Map<String, String>> deleteOwnAccount(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null || userDetails.getUsername() == null) {
@@ -155,5 +159,33 @@ public class UserController {
             response.put("message", "Pengguna tidak ditemukan.");
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
+    }
+
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PatchMapping("/change-role/{userId}")
+    public ResponseEntity<Map<String, String>> changeUserRole(@AuthenticationPrincipal UserDetails userDetails,
+                                                              @PathVariable Long userId,
+                                                              @RequestBody Map<String, String> requestBody) {
+        UserDto currentUser = userService.getUserByEmail(userDetails.getUsername());
+        if (currentUser.getId().equals(userId)) {
+            Map<String, String> response = new HashMap<>();
+            response.put("status", "error");
+            response.put("message", "Admin tidak bisa mengubah role dirinya sendiri.");
+            return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+        }
+
+        String newRole = requestBody.get("newRole");
+        if (newRole == null || newRole.isEmpty() || !Role.isValidRole(newRole)) {
+            Map<String, String> response = new HashMap<>();
+            response.put("status", "error");
+            response.put("message", "Role tidak valid. Pastikan role yang diberikan benar.");
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
+        userService.updateUserRole(userId, newRole.toUpperCase());
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "Role berhasil diubah.");
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

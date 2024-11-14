@@ -21,7 +21,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
         Map<String, String> responseBody = new HashMap<>();
         responseBody.put("status", "error");
-        responseBody.put("message", "Kamu tidak memiliki akses administrator.");
+        responseBody.put("message", "Kamu tidak memiliki akses.");
 
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonResponse = objectMapper.writeValueAsString(responseBody);

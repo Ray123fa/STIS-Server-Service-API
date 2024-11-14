@@ -4,16 +4,12 @@ import com.polstat.penyediaanserver.dto.UserDto;
 import com.polstat.penyediaanserver.entity.User;
 import com.polstat.penyediaanserver.enums.Role;
 import com.polstat.penyediaanserver.exception.EmailAlreadyExistsException;
-import com.polstat.penyediaanserver.exception.InvalidEmailDomainException;
 import com.polstat.penyediaanserver.exception.UserNotExistException;
 import com.polstat.penyediaanserver.mapper.UserMapper;
 import com.polstat.penyediaanserver.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import static com.polstat.penyediaanserver.enums.Role.ADMINISTRATOR;
-import static com.polstat.penyediaanserver.enums.Role.MAHASISWA;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -24,19 +20,16 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public UserDto createUser(UserDto userDto) {
+    public UserDto createUser(UserDto userDto, Role role) {
         // Cek apakah email sudah terdaftar
         if (userRepository.findByEmail(userDto.getEmail()) != null) {
             throw new EmailAlreadyExistsException("Email sudah terdaftar. Gunakan email lain.");
         }
 
-        // Cek apakah email berdomain STIS
-        if (!userDto.getEmail().endsWith("@stis.ac.id")) {
-            throw new InvalidEmailDomainException("Hanya email berdomain stis.ac.id yang diperbolehkan.");
-        }
-
+        userDto.setName(userDto.getName());
+        userDto.setEmail(userDto.getEmail());
         userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        userDto.setRole(MAHASISWA);
+        userDto.setRole(role);
 
         User user = userRepository.save(UserMapper.mapToUser(userDto));
         return UserMapper.mapToUserDto(user);
@@ -48,6 +41,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotExistException("Pengguna tidak ditemukan"));
         existingUser.setName(userDto.getName());
         existingUser.setEmail(userDto.getEmail());
+        existingUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
 
         User updatedUser = userRepository.save(existingUser);
         return UserMapper.mapToUserDto(updatedUser);
@@ -74,25 +68,6 @@ public class UserServiceImpl implements UserService {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public UserDto addAdministrator(UserDto userDto) {
-        // Cek apakah email sudah terdaftar
-        if (userRepository.findByEmail(userDto.getEmail()) != null) {
-            throw new EmailAlreadyExistsException("Email sudah terdaftar. Gunakan email lain.");
-        }
-
-        // Cek apakah email berdomain STIS
-        if (!userDto.getEmail().endsWith("@stis.ac.id")) {
-            throw new InvalidEmailDomainException("Hanya email berdomain stis.ac.id yang diperbolehkan.");
-        }
-
-        userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        userDto.setRole(ADMINISTRATOR);
-
-        User user = userRepository.save(UserMapper.mapToUser(userDto));
-        return UserMapper.mapToUserDto(user);
     }
 
     @Override

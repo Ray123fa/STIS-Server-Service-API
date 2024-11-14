@@ -32,4 +32,12 @@ public class GlobalExceptionHandler {
         response.put("message", ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(ServerRequestNotExistException.class)
+    public ResponseEntity<Map<String, String>> handleServerRequestNotExistException(ServerRequestNotExistException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "error");
+        response.put("message", ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
 }
