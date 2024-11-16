@@ -28,4 +28,6 @@ email = unit-ti@stis.ac.id
 password = unit-ti-stis
 ```
 
-6. Kunjungi pranala berikut untuk mengakses dokumentasi web service yang dibuat https://ray123fa.github.io/STIS-Server-Service-API-Documentation/
+6. Kunjungi salah satu pranala berikut untuk mengakses dokumentasi web service yang dibuat.
+	- [Dokumentasi Swagger](https://ray123fa.github.io/STIS-Server-Service-API-Documentation/)
+	- [Dokumentasi Postman](https://documenter.getpostman.com/view/24405166/2sAYBPkZmh)
