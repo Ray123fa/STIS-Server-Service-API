@@ -7,7 +7,7 @@ public interface UserService {
     UserDto createUser(UserDto user, Role role);
     UserDto updateUser(Long userId, UserDto userDto);
     boolean updateUserEmail(String currentEmail, String newEmail);
-    boolean updateUserPassword(String email, String newPassword);
+    boolean updateUserPassword(String email, String currentPassword, String newPassword);
     void updateUserRole(Long userId, String newRole);
     boolean deleteUserByEmail(String email);
     UserDto getUserByEmail(String email);

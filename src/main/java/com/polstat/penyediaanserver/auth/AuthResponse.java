@@ -17,8 +17,14 @@ public class AuthResponse {
             "jQ5quFUvSsPdtIcCtLb3MCzr2nPRrvt3egkwNkNRXr6WjR6OmWpoUh0" +
             "avFZpmOtfXhOs73KKaqWQ";
 
+    @Schema(example = "Rayhan")
+    private String name;
+
     @Schema(example = "rehan@stis.ac.id")
     private String email;
+
+    @Schema(example = "MAHASISWA")
+    private String role;
 
     @Schema(example = jwt)
     private String accessToken;

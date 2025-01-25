@@ -3,6 +3,7 @@ package com.polstat.penyediaanserver.service;
 import com.polstat.penyediaanserver.dto.UserDto;
 import com.polstat.penyediaanserver.entity.User;
 import com.polstat.penyediaanserver.enums.Role;
+import com.polstat.penyediaanserver.exception.CurrentPasswordIncorrectException;
 import com.polstat.penyediaanserver.exception.EmailAlreadyExistsException;
 import com.polstat.penyediaanserver.exception.UserNotExistException;
 import com.polstat.penyediaanserver.mapper.UserMapper;
@@ -59,9 +60,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateUserPassword(String currentEmail, String newPassword) {
+    public boolean updateUserPassword(String currentEmail, String currentPassword, String newPassword) {
         User user = userRepository.findByEmail(currentEmail);
         if (user != null) {
+            if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+                throw new CurrentPasswordIncorrectException("Current password tidak sesuai.");
+            }
+
             String encodedPassword = passwordEncoder.encode(newPassword);
             user.setPassword(encodedPassword);
             userRepository.save(user);

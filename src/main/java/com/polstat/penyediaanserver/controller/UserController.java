@@ -193,6 +193,14 @@ public class UserController {
             return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         }
 
+        String currentPassword = requestBody.get("currentPassword");
+        if (currentPassword == null || currentPassword.isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("status", "error");
+            response.put("message", "Current password tidak boleh kosong.");
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
         String newPassword = requestBody.get("newPassword");
         if (newPassword == null || newPassword.isEmpty()) {
             Map<String, String> response = new HashMap<>();
@@ -201,7 +209,7 @@ public class UserController {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
-        boolean isUpdated = userService.updateUserPassword(userDetails.getUsername(), newPassword);
+        boolean isUpdated = userService.updateUserPassword(userDetails.getUsername(), currentPassword, newPassword);
         Map<String, String> response = new HashMap<>();
         if (isUpdated) {
             response.put("status", "success");

@@ -60,8 +60,15 @@ public class AuthController {
                     authManager.authenticate(new UsernamePasswordAuthenticationToken(
                             request.getEmail(), request.getPassword()));
 
+            // Ambil informasi pengguna dari database berdasarkan email
+            UserDto user = userService.getUserByEmail(request.getEmail());
+
+            // Generate JWT token
             String accessToken = jwtUtil.generateAccessToken(authentication);
-            AuthResponse response = new AuthResponse(request.getEmail(), accessToken);
+
+            // Buat respons autentikasi dengan nama dan role
+            AuthResponse response = new AuthResponse(user.getName(), user.getEmail(), user.getRole().name(), accessToken);
+
             return ResponseEntity.ok().body(response);
         } catch (BadCredentialsException ex) {
             Map<String, Object> response = new HashMap<>();
